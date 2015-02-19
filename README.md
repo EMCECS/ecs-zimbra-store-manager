@@ -8,10 +8,12 @@ Compiling instructions:
 3. Run from command line: mvn clean package
 
 How to configure the library from sources:
+
 1. Change configuration of: sources-folder/src/main/resources/ecs.properties
 2. Compile
 
 How to configure compiled library:
+
 1. Change configuration of: sources-folder/src/main/resources/ecs.properties
 2. Open compiled ecsstoremanager-VERSION.jar with any Zip archive program.
 3. Replace configured ecs.properties file inside the root of opened Jar using Zip archive program.
@@ -32,7 +34,7 @@ To restart the server:
 4. Check if Zimbra started: ./opt/zimbra/bin/zmconfig status 
 5. If haven't started, run: ./opt/zimbra/bin/zmconfig start.
 
-NOTE:
+**NOTE:**
 This plugin will not migrate any existing accounts and account data to ECS store. In order to migrate
 that data manual migration must be performed!
 
