@@ -4,8 +4,9 @@ Zimbra storage manager plugin for ECS
 Compiling instructions:
 
 1. Install Maven
-2. Go to sources root
-3. Run from command line: mvn clean package
+2. Build and install Zimbra so you have the zimbra-store JAR in your local maven repository: http://wiki.zimbra.com/wiki/Building_Zimbra_using_Git
+3. Go to sources root
+4. Run from command line: mvn clean package
 
 How to configure the library from sources:
 
