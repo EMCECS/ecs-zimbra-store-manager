@@ -21,6 +21,42 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.zimbra</groupId>
+            <artifactId>zimbracommon</artifactId>
+            <version>9.0.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.zimbra</groupId>
+            <artifactId>zimbraclient</artifactId>
+            <version>9.0.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.zimbra</groupId>
+            <artifactId>zimbrasoap</artifactId>
+            <version>9.0.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>1.5.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.emc.vipr</groupId>
             <artifactId>s3-client</artifactId>
             <version>2.0.1</version>
