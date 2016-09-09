@@ -361,12 +361,12 @@ repositories {
 
 dependencies {
     compile "com.emc.vipr:s3-client:2.0.1"
-    compileOnly "com.zimbra:zimbrastore:9.0.0-SNAPSHOT",
-        "com.zimbra:zimbracommon:9.0.0-SNAPSHOT"
+    compileOnly "com.zimbra:zimbrastore:8.7.0-SNAPSHOT",
+        "com.zimbra:zimbracommon:8.7.0-SNAPSHOT"
     testCompile "junit:junit:4.11",
         "org.mockito:mockito-core:1.9.5"
-    testRuntime "com.zimbra:zimbraclient:9.0.0-SNAPSHOT",
-        "com.zimbra:zimbrasoap:9.0.0-SNAPSHOT",
+    testRuntime "com.zimbra:zimbraclient:8.7.0-SNAPSHOT",
+        "com.zimbra:zimbrasoap:8.7.0-SNAPSHOT",
         "javax.mail:mail:1.4.5",
         "dom4j:dom4j:1.5.2",
         "log4j:log4j:1.2.16"
