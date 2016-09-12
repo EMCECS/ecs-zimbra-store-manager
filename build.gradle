@@ -60,7 +60,6 @@ buildscript {
 //    apply from: "$commonBuildDir/ecs-publish.buildscript.gradle", to: buildscript // START
     repositories {
         jcenter { url 'http://jcenter.bintray.com/' }
-        mavenLocal()
     }
     dependencies {
         classpath 'org.ajoberstar:gradle-git:1.1.0',
@@ -96,7 +95,6 @@ allprojects {
     //    apply from: "$commonBuildDir/ecs-publish.buildscript.gradle", to: buildscript // START
         repositories {
             jcenter { url 'http://jcenter.bintray.com/' }
-            mavenLocal()
         }
     //    apply from: "$commonBuildDir/ecs-publish.buildscript.gradle", to: buildscript // END
     }
