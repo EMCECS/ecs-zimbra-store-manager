@@ -188,12 +188,23 @@ public class EcsStoreManager extends ExternalStoreManager {
     @Override
     public List<String> getAllBlobPaths(Mailbox mbox) throws IOException {
         String bucketName = EcsLocatorUtil.getBucketName(mbox);
-        ListObjectsResult objectListing = client.listObjects(new ListObjectsRequest(bucketName));
-
+        ListObjectsRequest request = new ListObjectsRequest(bucketName);
         List<String> result = new ArrayList<>();
-        for (S3Object object : objectListing.getObjects()) {
-            EcsLocator ecsLocator = new EcsLocator(bucketName, object.getKey());
-            result.add(EcsLocatorUtil.toStringLocator(ecsLocator));
+        boolean listingIncomplete = true;
+
+        while(listingIncomplete) {
+            ListObjectsResult objectListing = client.listObjects(request);
+    
+            for (S3Object object : objectListing.getObjects()) {
+                EcsLocator ecsLocator = new EcsLocator(bucketName, object.getKey());
+                result.add(EcsLocatorUtil.toStringLocator(ecsLocator));
+            }
+
+            if (objectListing.isTruncated()) {
+                request.setMarker(objectListing.getNextMarker());
+            } else {
+                listingIncomplete = false;
+            }
         }
 
         return result;
