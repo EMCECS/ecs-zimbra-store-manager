@@ -57,13 +57,13 @@ import org.ajoberstar.grgit.*
 buildscript {
     ext.commonBuildVersion = '1.6'
     ext.commonBuildDir = "https://raw.githubusercontent.com/EMCECS/ecs-common-build/v$commonBuildVersion"
-    apply from: "$commonBuildDir/ecs-publish.buildscript.gradle", to: buildscript // START
-    apply from: "$commonBuildDir/ecs-tool.buildscript.gradle", to: buildscript // START
+    apply from: "$commonBuildDir/ecs-publish.buildscript.gradle", to: buildscript
+    apply from: "$commonBuildDir/ecs-tool.buildscript.gradle", to: buildscript
 }
 
 allprojects {
-    apply from: "$commonBuildDir/ecs-publish.gradle" // START
-    apply from: "$commonBuildDir/ecs-tool.subproject.gradle" // START
+    apply from: "$commonBuildDir/ecs-publish.gradle"
+    apply from: "$commonBuildDir/ecs-tool.subproject.gradle"
     shadowJar {
         manifest {
             attributes 'Zimbra-Extension-Class': project.mainClass
