@@ -358,7 +358,7 @@ repositories {
 }
 
 dependencies {
-    compile "com.emc.vipr:s3-client:2.0.1"
+    compile "com.emc.ecs:object-client:2.2.3"
     compileOnly "com.zimbra:zimbrastore:8.7.0-SNAPSHOT",
         "com.zimbra:zimbracommon:8.7.0-SNAPSHOT"
     testCompile "junit:junit:4.11",

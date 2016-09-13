@@ -1,7 +1,6 @@
 package com.emc.ecs.zimbra.integration.util;
 
-import com.amazonaws.event.ProgressEvent;
-import com.amazonaws.event.ProgressListener;
+import com.emc.object.util.ProgressListener;
 
 /**
  * <p>
@@ -22,40 +21,20 @@ import com.amazonaws.event.ProgressListener;
  */
 public class EcsProgressListener implements ProgressListener {
 
+    /* (non-Javadoc)
+     * @see com.emc.object.util.ProgressListener#progress(long, long)
+     */
     @Override
-    public void progressChanged(ProgressEvent progressEvent) {
-        int eventCode = progressEvent.getEventCode();
-        long bytesTransferred = progressEvent.getBytesTransferred();
-        EcsLogger.debug(
-                String.format("ProgressEvent: code - %s, bytesTransferred - %s",
-                        getEventName(eventCode),
-                        bytesTransferred)
-        );
+    public void progress(long completed, long total) {
+        EcsLogger.debug("Transfer progress - " + Long.toString(completed) + "/" + Long.toString(total));
     }
 
-    private String getEventName(int eventCode) {
-        switch (eventCode) {
-            case ProgressEvent.PREPARING_EVENT_CODE:
-                return "Preparing";
-            case ProgressEvent.STARTED_EVENT_CODE:
-                return "Started";
-            case ProgressEvent.COMPLETED_EVENT_CODE:
-                return "Completed";
-            case ProgressEvent.FAILED_EVENT_CODE:
-                return "Failed";
-            case ProgressEvent.CANCELED_EVENT_CODE:
-                return "Canceled";
-            case ProgressEvent.RESET_EVENT_CODE:
-                return "Reset";
-            case ProgressEvent.PART_STARTED_EVENT_CODE:
-                return "Multipart upload part started";
-            case ProgressEvent.PART_COMPLETED_EVENT_CODE:
-                return "Multipart upload part completed";
-            case ProgressEvent.PART_FAILED_EVENT_CODE:
-                return "Multipart upload part failed";
-        }
-
-        return "Unknown event: " + eventCode;
+    /* (non-Javadoc)
+     * @see com.emc.object.util.ProgressListener#transferred(long)
+     */
+    @Override
+    public void transferred(long size) {
+        EcsLogger.debug("BytesTransferred - " + Long.toString(size));
     }
 
 }
