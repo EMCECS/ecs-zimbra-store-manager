@@ -55,7 +55,7 @@ public class EcsStoreManager extends ExternalStoreManager {
             client = S3ClientFactory.getS3Client();
         } catch (Exception e) {
             client = null;
-            throw new IOException(e);
+            throw ServiceException.RESOURCE_UNREACHABLE(e.getMessage(), e, (ServiceException.Argument) null);
         }
         multipartUploadThreshold = S3ClientFactory.getMultipartUploadThreshold();
     }
