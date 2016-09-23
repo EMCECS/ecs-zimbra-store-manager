@@ -25,7 +25,7 @@ public class EcsLocatorUtil {
     public static EcsLocator generateEcsLocator(Mailbox mbox) {
         return new EcsLocator(
                 getBucketName(mbox),
-                UUID.randomUUID().toString()
+                getNewKey(mbox)
         );
     }
 
@@ -41,15 +41,42 @@ public class EcsLocatorUtil {
             throw new IllegalArgumentException("Invalid locator String");
     }
 
+    public static String getBucketNameBase() {
+        return String.format("%s.%s", ZIMBRA, getConfiguration().getZimbraStoreName());
+    }
+
     public static String getBucketName(Mailbox mbox) {
-        String serverName = getConfiguration().getZimbraServerName();
-        return String.format("%s.%s.%s", ZIMBRA, serverName, mbox.getId());
+        switch (getConfiguration().getMailboxLocatorScheme()) {
+        case Bucket:
+            return String.format("%s.%s", getBucketNameBase(), mbox.getId());
+        case Prefix:
+        default:
+            return getBucketNameBase();
+        }
+    }
+
+    public static String getNewKey(Mailbox mbox) {
+        return String.format("%s%s", getPrefix(mbox), UUID.randomUUID().toString());
     }
 
     private static Configuration getConfiguration() {
         ConfigurationFactoryUtil configurationFactoryUtil = new ConfigurationFactoryUtil();
         ConfigurationFactory configurationFactory = configurationFactoryUtil.getConfigurationFactory();
         return configurationFactory.create();
+    }
+
+    /**
+     * @param mbox
+     * @return
+     */
+    public static String getPrefix(Mailbox mbox) {
+        switch (getConfiguration().getMailboxLocatorScheme()) {
+        case Bucket:
+            return "";
+        case Prefix:
+        default:
+            return String.format("%s.", mbox.getId());
+        }
     }
 
 }

@@ -13,7 +13,7 @@ public interface Configuration {
 
     String getEndpoints();
 
-    String getZimbraServerName();
+    String getZimbraStoreName();
 
     Boolean useSmartClient();
 
@@ -24,4 +24,7 @@ public interface Configuration {
     Boolean getCertificateValidationEnabled();
 
     String getClientProtocol();
+
+    MailboxLocatorScheme getMailboxLocatorScheme();
+
 }

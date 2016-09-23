@@ -4,6 +4,7 @@ import com.emc.ecs.zimbra.integration.util.EcsLogger;
 import com.emc.ecs.zimbra.integration.util.EcsProgressListener;
 import com.emc.object.s3.LargeFileUploader;
 import com.emc.object.s3.S3ObjectMetadata;
+import com.emc.object.s3.bean.Bucket;
 import com.emc.object.s3.bean.ListObjectsResult;
 import com.emc.object.s3.bean.S3Object;
 import com.emc.object.s3.jersey.S3JerseyClient;
@@ -16,7 +17,9 @@ import com.zimbra.cs.store.external.ExternalStoreManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -24,7 +27,7 @@ import java.util.List;
  * <a href="http://wiki.zimbra.com/wiki/StoreManagerSDK">Zimbra Server's StoreManager SDK</a>.
  * </p>
  * <p>
- * This class is used to write, read and delete blobs from EMC ECS store using ViPR S3 client.
+ * This class is used to write, read and delete blobs from EMC ECS store using ECS S3 client.
  * </p>
  * <p>
  * Uses {@link com.emc.object.s3.jersey.S3JerseyClient} for reading and deleting blobs.<br/>
@@ -37,6 +40,7 @@ public class EcsStoreManager extends ExternalStoreManager {
     public static final String BUCKET_NOT_EMPTY_ERROR_CODE = "BucketNotEmpty";
     private S3JerseyClient client;
     private long multipartUploadThreshold;
+    private final Set<String> bucketNames = new HashSet<String>();
 
     /**
      * <p>
@@ -53,11 +57,24 @@ public class EcsStoreManager extends ExternalStoreManager {
         super.startup();
         try {
             client = S3ClientFactory.getS3Client();
+            fillBucketNames();
         } catch (Exception e) {
             client = null;
             throw ServiceException.RESOURCE_UNREACHABLE(e.getMessage(), e, (ServiceException.Argument) null);
         }
         multipartUploadThreshold = S3ClientFactory.getMultipartUploadThreshold();
+    }
+
+    /**
+     */
+    private void fillBucketNames() {
+        String bucketNameBase = EcsLocatorUtil.getBucketNameBase();
+        bucketNames.clear();
+        for (Bucket bucket : client.listBuckets().getBuckets()) {
+            if (bucket.getName().startsWith(bucketNameBase)) {
+                bucketNames.add(bucket.getName());
+            }
+        }
     }
 
     /**
@@ -72,12 +89,13 @@ public class EcsStoreManager extends ExternalStoreManager {
         EcsLogger.debug("Shutting down ECS Store Manager");
         super.shutdown();
         client.shutdown();
+        bucketNames.clear();
     }
 
     /**
      * <p>
      * Writes input stream to ECS store. Uses Mailbox ID
-     * and zimbra.server_name property to generate bucket name.
+     * and zimbra.store_name property to generate bucket name.
      * Random UUID is used as a key for the blob inside the bucket.
      * </p>
      *
@@ -94,8 +112,9 @@ public class EcsStoreManager extends ExternalStoreManager {
 
         EcsLocator locator = EcsLocatorUtil.generateEcsLocator(mbox);
 
-        if (!client.bucketExists(locator.getBucketName())) {
+        if (!bucketNames.contains(locator.getBucketName())) {
             client.createBucket(locator.getBucketName());
+            bucketNames.add(locator.getBucketName());
         }
 
         S3ObjectMetadata metadata = new S3ObjectMetadata();
@@ -168,10 +187,6 @@ public class EcsStoreManager extends ExternalStoreManager {
             return false;
         }
 
-        if (client.listObjects(el.getBucketName()).getObjects().isEmpty()) {
-            client.deleteBucket(el.getBucketName());
-        }
-
         return true;
     }
 
@@ -189,6 +204,10 @@ public class EcsStoreManager extends ExternalStoreManager {
     public List<String> getAllBlobPaths(Mailbox mbox) throws IOException {
         String bucketName = EcsLocatorUtil.getBucketName(mbox);
         ListObjectsRequest request = new ListObjectsRequest(bucketName);
+        String prefix = EcsLocatorUtil.getPrefix(mbox);
+        if ((prefix != null) && (prefix.length() > 0)) {
+            request.setPrefix(prefix);
+        }
         List<String> result = new ArrayList<>();
         boolean listingIncomplete = true;
 

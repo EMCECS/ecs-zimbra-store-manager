@@ -23,7 +23,8 @@ public class PropertiesConfigurationDecorator implements Configuration {
     private static final String ECS_CERTIFICATE_VERIFICATION_ENABLED = "ecs.certificate_verification_enabled";
     private static final String ECS_CLIENT_PROTOCOL = "ecs.client_protocol";
 
-    private static final String ZIMBRA_SERVER_NAME = "zimbra.server_name";
+    private static final String ZIMBRA_STORE_NAME = "zimbra.store_name";
+    private static final String MAILBOX_LOCATOR_SCHEME = "zimbra.mailbox_locator_scheme";
 
     @Override
     public String getAccessKey() {
@@ -41,8 +42,8 @@ public class PropertiesConfigurationDecorator implements Configuration {
     }
 
     @Override
-    public String getZimbraServerName() {
-        return getNonEmptyString(ZIMBRA_SERVER_NAME);
+    public String getZimbraStoreName() {
+        return getNonEmptyString(ZIMBRA_STORE_NAME);
     }
 
     @Override
@@ -70,6 +71,11 @@ public class PropertiesConfigurationDecorator implements Configuration {
     @Override
     public String getClientProtocol() {
         return getNonEmptyString(ECS_CLIENT_PROTOCOL);
+    }
+
+    @Override
+    public MailboxLocatorScheme getMailboxLocatorScheme() {
+        return MailboxLocatorScheme.getValue(getNonEmptyString(MAILBOX_LOCATOR_SCHEME));
     }
 
     private String getNonEmptyString(String key) {

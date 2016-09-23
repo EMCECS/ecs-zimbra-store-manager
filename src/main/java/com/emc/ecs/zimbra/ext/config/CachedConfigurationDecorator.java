@@ -34,7 +34,7 @@ public class CachedConfigurationDecorator implements Configuration {
     }
 
     @Override
-    public String getZimbraServerName() {
+    public String getZimbraStoreName() {
         return (String) getValue("getZimbraServerName");
     }
 
@@ -61,6 +61,11 @@ public class CachedConfigurationDecorator implements Configuration {
     @Override
     public String getClientProtocol() {
         return (String) getValue("getClientProtocol");
+    }
+
+    @Override
+    public MailboxLocatorScheme getMailboxLocatorScheme() {
+        return (MailboxLocatorScheme) getValue("getMailboxLocatorScheme");
     }
 
     private Object getValue(String method) {
