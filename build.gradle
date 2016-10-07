@@ -40,6 +40,14 @@ allprojects {
     }
 }
 
+defaultTasks 'distZip'
+
+artifacts {
+    jars shadowJar
+    jars javadocJar
+    jars sourcesJar
+}
+
 repositories {
     jcenter { url 'http://jcenter.bintray.com/' }
     mavenLocal()
