@@ -5,7 +5,7 @@
  * You may not use this file except in compliance with the License.
  * A copy of the License is located at
  *
- * https://github.com/EMCECS/ecs-zimbra-store-manager/blob/master/LICENSE
+ * https://github.com/EMCECS/ecs-zimbra-store-manager/blob/master/LICENSE.txt
  *
  * or in the "license" file accompanying this file. This file is distributed
  * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
@@ -32,10 +32,16 @@ buildscript {
 
 allprojects {
     apply from: "$commonBuildDir/ecs-publish.gradle"
-    apply from: "$commonBuildDir/ecs-tool.subproject.gradle"
+
+    apply plugin: 'com.github.johnrengelman.shadow'
+
     shadowJar {
+        destinationDir file("${buildDir}/shadow")
+        classifier ''
         manifest {
-            attributes 'Zimbra-Extension-Class': project.mainClass
+            attributes 'Zimbra-Extension-Class': project.mainClass,
+                    'Implementation-Version': project.version,
+                    'Class-Path': { configurations.runtime.collect { it.getName() }.join(' ') }
         }
     }
 }
