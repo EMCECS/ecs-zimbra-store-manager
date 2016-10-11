@@ -34,7 +34,7 @@ public enum MailboxLocatorScheme {
                 return scheme;
             }
         }
-        return null;
+        return Prefix;
     }
 
 }

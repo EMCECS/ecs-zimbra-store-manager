@@ -31,10 +31,6 @@ public interface Configuration {
 
     Boolean useSmartClient();
 
-    Long getMinimumUploadPartSize();
-
-    Long getMultipartUploadThreshold();
-
     Boolean getCertificateValidationEnabled();
 
     String getClientProtocol();

@@ -60,16 +60,6 @@ public class CachedConfigurationDecorator implements Configuration {
     }
 
     @Override
-    public Long getMinimumUploadPartSize() {
-        return (Long) getValue("getMinimumUploadPartSize");
-    }
-
-    @Override
-    public Long getMultipartUploadThreshold() {
-        return (Long) getValue("getMultipartUploadThreshold");
-    }
-
-    @Override
     public Boolean getCertificateValidationEnabled() {
         return (Boolean) getValue("getCertificateValidationEnabled");
     }

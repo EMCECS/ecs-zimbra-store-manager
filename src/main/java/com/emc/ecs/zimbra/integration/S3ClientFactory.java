@@ -157,11 +157,4 @@ public class S3ClientFactory {
         }
     }
 
-    /**
-     * @return
-     */
-    public static long getMultipartUploadThreshold() {
-        return getConfiguration().getMultipartUploadThreshold();
-    }
-
 }

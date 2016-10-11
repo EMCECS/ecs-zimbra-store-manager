@@ -13,50 +13,70 @@
  * permissions and limitations under the License.
  */
 description = "Zimbra Storage Manager plugin that writes to EMC Elastic Cloud Storage"
-group = 'com.emc.ecs.zimbra'
+group = 'com.emc.ecs'
 version = '0.2.0'
 
 ext.githubProjectName = 'ecs-zimbra-store-manager'
 ext.licenseName = 'EMC Software License Agreement - Free Software'
-ext.licenseUrl = 'https://raw.githubusercontent.com/EMCECS/ecs-zimbra-store-manager/master/LICENSE'
+ext.licenseUrl = 'https://raw.githubusercontent.com/EMCECS/ecs-zimbra-store-manager/master/LICENSE.txt'
 ext.mainClass = 'com.emc.ecs.zimbra.ext.EcsStoreExt'
-
-import org.ajoberstar.grgit.*
+ext.aggregatedDocsDir = "$buildDir/aggregatedDocs"
 
 buildscript {
-    ext.commonBuildVersion = '1.6'
-    ext.commonBuildDir = "https://raw.githubusercontent.com/EMCECS/ecs-common-build/v$commonBuildVersion"
-    apply from: "$commonBuildDir/ecs-publish.buildscript.gradle", to: buildscript
-    apply from: "$commonBuildDir/ecs-tool.buildscript.gradle", to: buildscript
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'net.saliman:gradle-cobertura-plugin:2.3.2'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+    }
 }
 
-allprojects {
-    apply from: "$commonBuildDir/ecs-publish.gradle"
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'java'
+apply plugin: 'net.saliman.cobertura'
+apply plugin: 'distribution'
+apply plugin: 'maven'
 
-    apply plugin: 'com.github.johnrengelman.shadow'
+configurations {
+    jars.extendsFrom(signatures)
+    export // specifies additional artifacts in the root distribution
+    tools // specifies tool artifacts for the root distribution (in the tools/ directory)
+}
 
-    shadowJar {
-        destinationDir file("${buildDir}/shadow")
-        classifier ''
-        manifest {
-            attributes 'Zimbra-Extension-Class': project.mainClass,
-                    'Implementation-Version': project.version,
-                    'Class-Path': { configurations.runtime.collect { it.getName() }.join(' ') }
-        }
+shadowJar {
+    destinationDir file("${buildDir}/shadow")
+    classifier ''
+    manifest {
+        attributes 'Zimbra-Extension-Class': project.mainClass,
+            'Implementation-Version': project.version,
+            'Class-Path': { configurations.runtime.collect { it.getName() }.join(' ') }
     }
 }
 
 defaultTasks 'distZip'
 
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
 artifacts {
     jars shadowJar
-    jars javadocJar
     jars sourcesJar
 }
 
 repositories {
     jcenter { url 'http://jcenter.bintray.com/' }
     mavenLocal()
+}
+
+test {
+    jvmArgs '-XX:-UseSplitVerifier' // required for cobertura and Java 1.7
 }
 
 dependencies {
@@ -72,6 +92,8 @@ dependencies {
         "log4j:log4j:1.2.16"
 }
 
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
 compileJava {
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
@@ -83,3 +105,78 @@ compileJava {
     }
 }
 
+def projectPom = {
+    project {
+        name project.name
+        description project.description
+        url 'https://community.emc.com/community/products/ecs#developer'
+
+        scm {
+            url scmUrl
+            connection scmConnection
+            developerConnection scmConnection
+        }
+
+        licenses {
+            license {
+                name licenseName
+                url licenseUrl
+                distribution 'repo'
+            }
+        }
+
+        developers {
+            developer {
+                id 'EMCECS'
+                name 'EMC ECS'
+            }
+        }
+    }
+}
+
+task writePom {
+    ext.pomFile = file("$buildDir/pom.xml")
+    outputs.file pomFile
+    doLast {
+        pom(projectPom).writeTo pomFile
+    }
+}
+
+jar {
+    doFirst {
+        manifest {
+            attributes 'Implementation-Version': project.version,
+                    'Class-Path': configurations.runtime.collect { it.getName() }.join(' ')
+        }
+    }
+    into("META-INF/maven/$project.group/$project.name") {
+        from writePom
+    }
+}
+
+distributions {
+    main {
+        contents {
+            from configurations.jars.artifacts.files
+            from configurations.export.artifacts.files
+            from { subprojects.configurations.export.artifacts.files }
+            from('.') {
+                include '*.txt'
+            }
+            into('3rd-party-licenses') {
+                from '3rd-party-licenses'
+            }
+            into('lib') {
+                from configurations.runtime
+            }
+        }
+    }
+}
+
+clean {
+    delete aggregatedDocsDir
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.14'
+}

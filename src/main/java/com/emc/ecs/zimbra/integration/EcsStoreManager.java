@@ -51,9 +51,8 @@ import java.util.Set;
 
 public class EcsStoreManager extends ExternalStoreManager {
 
-    public static final String BUCKET_NOT_EMPTY_ERROR_CODE = "BucketNotEmpty";
     private S3JerseyClient client;
-    private long multipartUploadThreshold;
+
     private final Set<String> bucketNames = new HashSet<String>();
 
     /**
@@ -76,7 +75,6 @@ public class EcsStoreManager extends ExternalStoreManager {
             client = null;
             throw ServiceException.RESOURCE_UNREACHABLE(e.getMessage(), e, (ServiceException.Argument) null);
         }
-        multipartUploadThreshold = S3ClientFactory.getMultipartUploadThreshold();
     }
 
     /**
@@ -136,20 +134,9 @@ public class EcsStoreManager extends ExternalStoreManager {
             metadata.setContentLength(actualSize);
         }
 
-        if (actualSize <= multipartUploadThreshold) {
-            PutObjectRequest request = new PutObjectRequest(locator.getBucketName(), locator.getKey(), in);
-            request.setObjectMetadata(metadata);
-            client.putObject(request);
-        } else {
-            LargeFileUploader uploader = new LargeFileUploader(client, locator.getBucketName(), locator.getKey(), in, actualSize);
-            uploader.setObjectMetadata(metadata);
-            uploader.setProgressListener(new EcsProgressListener());
-            try {
-                uploader.run();
-            } catch (Exception e) {
-                EcsLogger.error(String.format("Failed to wait for upload completion"), e);
-            }
-        }
+        PutObjectRequest request = new PutObjectRequest(locator.getBucketName(), locator.getKey(), in);
+        request.setObjectMetadata(metadata);
+        client.putObject(request);
 
         String stringLocator = EcsLocatorUtil.toStringLocator(locator);
         EcsLogger.debug(String.format("writeStreamToStore() - end: locator - %s", stringLocator));

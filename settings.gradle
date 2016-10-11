@@ -12,4 +12,4 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-rootProject.name = 'ecsstoremanager'
+rootProject.name = 'ecs-zimbra-store-manager'

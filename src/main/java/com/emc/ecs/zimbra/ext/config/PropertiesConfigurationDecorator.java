@@ -32,8 +32,6 @@ public class PropertiesConfigurationDecorator implements Configuration {
     public static final String ECS_SECRET_KEY = "ecs.secret_key";
     public static final String ECS_ENDPOINTS = "ecs.endpoints";
     public static final String ECS_USE_SMART_CLIENT = "ecs.use_smart_client";
-    private static final String ECS_MINIMUM_UPLOAD_PART_SIZE = "ecs.minimum_upload_part_size";
-    private static final String ECS_MULTIPART_UPLOAD_THRESHOLD = "ecs.multipart_upload_threshold";
     private static final String ECS_CERTIFICATE_VERIFICATION_ENABLED = "ecs.certificate_verification_enabled";
     public static final String ECS_CLIENT_PROTOCOL = "ecs.client_protocol";
     public static final String ECS_S3_CONFIG_URI = "ecs.s3_config_uri";
@@ -65,16 +63,6 @@ public class PropertiesConfigurationDecorator implements Configuration {
     public Boolean useSmartClient() {
         String useSmartClientStr = getString(ECS_USE_SMART_CLIENT);
         return (useSmartClientStr == null) ? null : Boolean.valueOf(useSmartClientStr);
-    }
-
-    @Override
-    public Long getMinimumUploadPartSize() {
-        return Long.valueOf(getNonEmptyString(ECS_MINIMUM_UPLOAD_PART_SIZE));
-    }
-
-    @Override
-    public Long getMultipartUploadThreshold() {
-        return Long.valueOf(getNonEmptyString(ECS_MULTIPART_UPLOAD_THRESHOLD));
     }
 
     @Override
