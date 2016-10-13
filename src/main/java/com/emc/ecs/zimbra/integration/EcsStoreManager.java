@@ -211,26 +211,28 @@ public class EcsStoreManager extends ExternalStoreManager {
     @Override
     public List<String> getAllBlobPaths(Mailbox mbox) throws IOException {
         String bucketName = EcsLocatorUtil.getBucketName(mbox);
-        ListObjectsRequest request = new ListObjectsRequest(bucketName);
-        String prefix = EcsLocatorUtil.getPrefix(mbox);
-        if ((prefix != null) && (prefix.length() > 0)) {
-            request.setPrefix(prefix);
-        }
         List<String> result = new ArrayList<>();
-        boolean listingIncomplete = true;
-
-        while(listingIncomplete) {
-            ListObjectsResult objectListing = client.listObjects(request);
-    
-            for (S3Object object : objectListing.getObjects()) {
-                EcsLocator ecsLocator = new EcsLocator(bucketName, object.getKey());
-                result.add(EcsLocatorUtil.toStringLocator(ecsLocator));
+        if (bucketNames.contains(bucketName)) {
+            ListObjectsRequest request = new ListObjectsRequest(bucketName);
+            String prefix = EcsLocatorUtil.getPrefix(mbox);
+            if ((prefix != null) && (prefix.length() > 0)) {
+                request.setPrefix(prefix);
             }
+            boolean listingIncomplete = true;
 
-            if (objectListing.isTruncated()) {
-                request.setMarker(objectListing.getNextMarker());
-            } else {
-                listingIncomplete = false;
+            while(listingIncomplete) {
+                ListObjectsResult objectListing = client.listObjects(request);
+        
+                for (S3Object object : objectListing.getObjects()) {
+                    EcsLocator ecsLocator = new EcsLocator(bucketName, object.getKey());
+                    result.add(EcsLocatorUtil.toStringLocator(ecsLocator));
+                }
+
+                if (objectListing.isTruncated()) {
+                    request.setMarker(objectListing.getNextMarker());
+                } else {
+                    listingIncomplete = false;
+                }
             }
         }
 
