@@ -15,8 +15,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.zimbra.common.util.StringUtil;
-
 /**
  * <p>
  * Configuration decorator that caches requests of the decorated configuration.

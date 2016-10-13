@@ -124,7 +124,7 @@ public class S3ClientFactory {
         return vdcs;
     }
 
-    private static Configuration getConfiguration() {
+    public static Configuration getConfiguration() {
         ConfigurationFactory configurationFactory = ConfigurationFactoryUtil.getConfigurationFactory();
         return configurationFactory.create();
     }

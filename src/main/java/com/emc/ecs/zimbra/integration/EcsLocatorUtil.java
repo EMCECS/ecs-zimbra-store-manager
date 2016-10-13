@@ -14,6 +14,7 @@ package com.emc.ecs.zimbra.integration;
 import com.emc.ecs.zimbra.ext.config.Configuration;
 import com.emc.ecs.zimbra.ext.config.ConfigurationFactory;
 import com.emc.ecs.zimbra.ext.config.ConfigurationFactoryUtil;
+import com.emc.ecs.zimbra.ext.config.MailboxLocatorScheme;
 import com.zimbra.cs.mailbox.Mailbox;
 
 import java.util.UUID;
@@ -71,8 +72,7 @@ public class EcsLocatorUtil {
     }
 
     private static Configuration getConfiguration() {
-        ConfigurationFactoryUtil configurationFactoryUtil = new ConfigurationFactoryUtil();
-        ConfigurationFactory configurationFactory = configurationFactoryUtil.getConfigurationFactory();
+        ConfigurationFactory configurationFactory = ConfigurationFactoryUtil.getConfigurationFactory();
         return configurationFactory.create();
     }
 
@@ -88,6 +88,13 @@ public class EcsLocatorUtil {
         default:
             return String.format("%s.", mbox.getId());
         }
+    }
+
+    /**
+     * @return <code>true</code> if the scheme uses one bucket for all mailboxes, <code>false</code> otherwise.
+     */
+    public static boolean useSingleBucket() {
+        return MailboxLocatorScheme.Bucket != getConfiguration().getMailboxLocatorScheme();
     }
 
 }

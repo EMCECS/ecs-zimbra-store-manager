@@ -12,8 +12,6 @@
 package com.emc.ecs.zimbra.integration;
 
 import com.emc.ecs.zimbra.integration.util.EcsLogger;
-import com.emc.ecs.zimbra.integration.util.EcsProgressListener;
-import com.emc.object.s3.LargeFileUploader;
 import com.emc.object.s3.S3ObjectMetadata;
 import com.emc.object.s3.bean.Bucket;
 import com.emc.object.s3.bean.ListObjectsResult;
@@ -41,8 +39,7 @@ import java.util.Set;
  * This class is used to write, read and delete blobs from EMC ECS store using ECS S3 client.
  * </p>
  * <p>
- * Uses {@link com.emc.object.s3.jersey.S3JerseyClient} for reading and deleting blobs.<br/>
- * Uses {@link com.emc.object.s3.LargeFileUploader} for uploading blobs
+ * Uses {@link com.emc.object.s3.jersey.S3JerseyClient} for uploading, reading and deleting blobs.<br/>
  * </p>
  */
 
@@ -84,6 +81,9 @@ public class EcsStoreManager extends ExternalStoreManager {
                 bucketNames.add(bucket.getName());
             }
         }
+        if (EcsLocatorUtil.useSingleBucket()) {
+            createBucketAsNeeded(EcsLocatorUtil.getBucketName(null));
+        }
     }
 
     /**
@@ -93,6 +93,7 @@ public class EcsStoreManager extends ExternalStoreManager {
      * resources.
      * </p>
      */
+    @SuppressWarnings("deprecation")
     @Override
     public void shutdown() {
         EcsLogger.debug("Shutting down ECS Store Manager");
@@ -121,9 +122,8 @@ public class EcsStoreManager extends ExternalStoreManager {
 
         EcsLocator locator = EcsLocatorUtil.generateEcsLocator(mbox);
 
-        if (!bucketNames.contains(locator.getBucketName())) {
-            client.createBucket(locator.getBucketName());
-            bucketNames.add(locator.getBucketName());
+        if (!EcsLocatorUtil.useSingleBucket()) {
+            createBucketAsNeeded(locator.getBucketName());
         }
 
         S3ObjectMetadata metadata = new S3ObjectMetadata();
@@ -138,6 +138,16 @@ public class EcsStoreManager extends ExternalStoreManager {
         String stringLocator = EcsLocatorUtil.toStringLocator(locator);
         EcsLogger.debug(String.format("writeStreamToStore() - end: locator - %s", stringLocator));
         return stringLocator;
+    }
+
+    /**
+     * @param bucketName
+     */
+    private void createBucketAsNeeded(String bucketName) {
+        if (!bucketNames.contains(bucketName)) {
+            client.createBucket(bucketName);
+            bucketNames.add(bucketName);
+        }
     }
 
     /**

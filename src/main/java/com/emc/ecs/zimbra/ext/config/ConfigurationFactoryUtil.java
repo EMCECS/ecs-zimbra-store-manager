@@ -18,6 +18,11 @@ package com.emc.ecs.zimbra.ext.config;
  */
 public class ConfigurationFactoryUtil {
 
+    /**
+     * Singleton, shouldn't be instantiated.
+     */
+    private ConfigurationFactoryUtil() {}
+
     private static ConfigurationFactory CONFIGURATION_FACTORY = new DefaultConfigurationFactory();
 
     public static ConfigurationFactory getConfigurationFactory() {
