@@ -7,9 +7,6 @@
 # A copy of the License is located at
 #
 # https://github.com/EMCECS/ecs-zimbra-store-manager/blob/master/LICENSE.txt
-#
-# or in the "LICENSE.txt" file accompanying this file.
-#
 
 ##############################################################################
 ##
