@@ -1,15 +1,14 @@
-Library: httpcore
-Source code: http://repo2.maven.org/maven2/org/apache/httpcomponents/httpcore/4.2.5/httpcore-4.2.5-sources.jar
-Copyright 2005-2013 The Apache Software Foundation
+Library: commons-logging
+Source code: http://repo2.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1-sources.jar
+Copyright 2001-2007 The Apache Software Foundation
 Full copyright text:
 -----------------------------------------------------------------------------------------------------------------------
-Copyright 2005-2013 The Apache Software Foundation
+Copyright 2001-2007 The Apache Software Foundation
 
-This product includes software developed at
-The Apache Software Foundation (http://www.apache.org/).
-
-This project contains annotations derived from JCIP-ANNOTATIONS
-Copyright (c) 2005 Brian Goetz and Tim Peierls. See http://www.jcip.net
+This product includes/uses software(s) developed by 'an unknown organization'
+  - Unnamed - avalon-framework:avalon-framework:jar:4.1.3
+  - Unnamed - log4j:log4j:jar:1.2.12
+  - Unnamed - logkit:logkit:jar:1.0.1
 -----------------------------------------------------------------------------------------------------------------------
 License: Apache 2.0
 Full License Text:
@@ -190,3 +189,28 @@ Full License Text:
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.

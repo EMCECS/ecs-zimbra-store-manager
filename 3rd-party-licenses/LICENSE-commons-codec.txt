@@ -1,9 +1,28 @@
 Library: commons-codec
-Copyright 2002-2013 The Apache Software Foundation
+Source code: http://repo2.maven.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10-sources.jar
+Copyright 2002-2014 The Apache Software Foundation
+Full copyright text:
+-----------------------------------------------------------------------------------------------------------------------
+Copyright 2002-2014 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+src/test/org/apache/commons/codec/language/DoubleMetaphoneTest.java
+contains test data from http://aspell.net/test/orig/batch0.tab.
+Copyright (C) 2002 Kevin Atkinson (kevina@gnu.org)
+
+===============================================================================
+
+The content of package org.apache.commons.codec.language.bm has been translated
+from the original php source code available at http://stevemorse.org/phoneticinfo.htm
+with permission from the original authors.
+Original source copyright:
+Copyright (c) 2008 Alexander Beider & Stephen P. Morse.
+-----------------------------------------------------------------------------------------------------------------------
 License: Apache 2.0
 Full License Text:
 -----------------------------------------------------------------------------------------------------------------------
-
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/

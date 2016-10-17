@@ -1,5 +1,13 @@
 Library: httpclient
-Copyright 1999-2015 The Apache Software Foundation
+Source code: http://repo2.maven.org/maven2/org/apache/httpcomponents/httpclient/4.2.6/httpclient-4.2.6-sources.jar
+Copyright 1999-2013 The Apache Software Foundation
+Full copyright text:
+-----------------------------------------------------------------------------------------------------------------------
+Copyright 1999-2013 The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+-----------------------------------------------------------------------------------------------------------------------
 License: Apache 2.0
 Full License Text:
 -----------------------------------------------------------------------------------------------------------------------
