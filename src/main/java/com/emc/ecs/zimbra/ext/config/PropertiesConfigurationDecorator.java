@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2016 EMC Corporation. All Rights Reserved.
+ *
+ * Licensed under the EMC Software License Agreement for Free Software (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ * https://github.com/EMCECS/ecs-zimbra-store-manager/blob/master/LICENSE.txt
+ */
 package com.emc.ecs.zimbra.ext.config;
 
 import java.io.FileNotFoundException;
@@ -14,51 +23,41 @@ public class PropertiesConfigurationDecorator implements Configuration {
 
     private static final String ECS_PROPERTIES_FILE = "ecs.properties";
 
-    private static final String ECS_ACCESS_KEY = "ecs.access_key";
-    private static final String ECS_SECRET_KEY = "ecs.secret_key";
-    private static final String ECS_ENDPOINTS = "ecs.endpoints";
-    private static final String ECS_USER_SMART_CLIENT = "ecs.use_smart_client";
-    private static final String ECS_MINIMUM_UPLOAD_PART_SIZE = "ecs.minimum_upload_part_size";
-    private static final String ECS_MULTIPART_UPLOAD_THRESHOLD = "ecs.multipart_upload_threshold";
+    public static final String ECS_ACCESS_KEY = "ecs.access_key";
+    public static final String ECS_SECRET_KEY = "ecs.secret_key";
+    public static final String ECS_ENDPOINTS = "ecs.endpoints";
+    public static final String ECS_USE_SMART_CLIENT = "ecs.use_smart_client";
     private static final String ECS_CERTIFICATE_VERIFICATION_ENABLED = "ecs.certificate_verification_enabled";
-    private static final String ECS_CLIENT_PROTOCOL = "ecs.client_protocol";
+    public static final String ECS_CLIENT_PROTOCOL = "ecs.client_protocol";
+    public static final String ECS_S3_CONFIG_URI = "ecs.s3_config_uri";
 
-    private static final String ZIMBRA_SERVER_NAME = "zimbra.server_name";
+    private static final String ZIMBRA_STORE_NAME = "zimbra.store_name";
+    private static final String MAILBOX_LOCATOR_SCHEME = "zimbra.mailbox_locator_scheme";
 
     @Override
     public String getAccessKey() {
-        return getNonEmptyString(ECS_ACCESS_KEY);
+        return getString(ECS_ACCESS_KEY);
     }
 
     @Override
     public String getSecretKey() {
-        return getNonEmptyString(ECS_SECRET_KEY);
+        return getString(ECS_SECRET_KEY);
     }
 
     @Override
     public String getEndpoints() {
-        return getNonEmptyString(ECS_ENDPOINTS);
+        return getString(ECS_ENDPOINTS);
     }
 
     @Override
-    public String getZimbraServerName() {
-        return getNonEmptyString(ZIMBRA_SERVER_NAME);
+    public String getZimbraStoreName() {
+        return getNonEmptyString(ZIMBRA_STORE_NAME);
     }
 
     @Override
     public Boolean useSmartClient() {
-        String useSmartClientStr = getNonEmptyString(ECS_USER_SMART_CLIENT);
-        return Boolean.valueOf(useSmartClientStr);
-    }
-
-    @Override
-    public Long getMinimumUploadPartSize() {
-        return Long.valueOf(getNonEmptyString(ECS_MINIMUM_UPLOAD_PART_SIZE));
-    }
-
-    @Override
-    public Long getMultipartUploadThreshold() {
-        return Long.valueOf(getNonEmptyString(ECS_MULTIPART_UPLOAD_THRESHOLD));
+        String useSmartClientStr = getString(ECS_USE_SMART_CLIENT);
+        return (useSmartClientStr == null) ? null : Boolean.valueOf(useSmartClientStr);
     }
 
     @Override
@@ -69,15 +68,32 @@ public class PropertiesConfigurationDecorator implements Configuration {
 
     @Override
     public String getClientProtocol() {
-        return getNonEmptyString(ECS_CLIENT_PROTOCOL);
+        return getString(ECS_CLIENT_PROTOCOL);
+    }
+
+    @Override
+    public MailboxLocatorScheme getMailboxLocatorScheme() {
+        return MailboxLocatorScheme.getValue(getNonEmptyString(MAILBOX_LOCATOR_SCHEME));
+    }
+
+    /* (non-Javadoc)
+     * @see com.emc.ecs.zimbra.ext.config.Configuration#getS3ConfigUri()
+     */
+    @Override
+    public String getS3ConfigUri() {
+        return getString(ECS_S3_CONFIG_URI);
     }
 
     private String getNonEmptyString(String key) {
-        String value = getProperties().getProperty(key);
+        String value = getString(key);
         if (value == null || value.isEmpty()) {
-            throw new RuntimeException();
+            throw new RuntimeException("Missing property: " + key);
         }
         return value;
+    }
+
+    private String getString(String key) {
+        return getProperties().getProperty(key);
     }
 
     private Properties getProperties() {

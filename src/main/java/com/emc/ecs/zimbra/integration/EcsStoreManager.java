@@ -1,12 +1,22 @@
+/*
+ * Copyright (c) 2016 EMC Corporation. All Rights Reserved.
+ *
+ * Licensed under the EMC Software License Agreement for Free Software (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ * https://github.com/EMCECS/ecs-zimbra-store-manager/blob/master/LICENSE.txt
+ */
 package com.emc.ecs.zimbra.integration;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.services.s3.model.*;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.Upload;
 import com.emc.ecs.zimbra.integration.util.EcsLogger;
-import com.emc.ecs.zimbra.integration.util.EcsProgressListener;
-import com.emc.vipr.services.s3.ViPRS3Client;
+import com.emc.object.s3.S3ObjectMetadata;
+import com.emc.object.s3.bean.Bucket;
+import com.emc.object.s3.bean.ListObjectsResult;
+import com.emc.object.s3.bean.S3Object;
+import com.emc.object.s3.jersey.S3JerseyClient;
+import com.emc.object.s3.request.ListObjectsRequest;
+import com.emc.object.s3.request.PutObjectRequest;
 import com.zimbra.common.service.ServiceException;
 import com.zimbra.cs.mailbox.Mailbox;
 import com.zimbra.cs.store.external.ExternalStoreManager;
@@ -14,7 +24,9 @@ import com.zimbra.cs.store.external.ExternalStoreManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -22,25 +34,23 @@ import java.util.List;
  * <a href="http://wiki.zimbra.com/wiki/StoreManagerSDK">Zimbra Server's StoreManager SDK</a>.
  * </p>
  * <p>
- * This class is used to write, read and delete blobs from EMC ECS store using ViPR S3 client.
+ * This class is used to write, read and delete blobs from EMC ECS store using ECS S3 client.
  * </p>
  * <p>
- * Uses {@link com.emc.vipr.services.s3.ViPRS3Client} for reading and deleting blobs.<br/>
- * Uses {@link com.amazonaws.services.s3.transfer.TransferManager} for uploading blobs
+ * Uses {@link com.emc.object.s3.jersey.S3JerseyClient} for uploading, reading and deleting blobs.<br/>
  * </p>
  */
 
 public class EcsStoreManager extends ExternalStoreManager {
 
-    public static final String BUCKET_NOT_EMPTY_ERROR_CODE = "BucketNotEmpty";
-    private ViPRS3Client viprClient;
-    private TransferManager transferManager;
+    private S3JerseyClient client;
+
+    private final Set<String> bucketNames = new HashSet<String>();
 
     /**
      * <p>
      * This method is invoked during initialization of Zimbra Server's internal services.
-     * Initializes {@link com.emc.vipr.services.s3.ViPRS3Client} and
-     * {@link com.amazonaws.services.s3.transfer.TransferManager}.
+     * Initializes {@link com.emc.object.s3.jersey.S3JerseyClient}.
      * </p>
      *
      * @throws IOException      see {@link com.zimbra.cs.store.external.ExternalStoreManager#startup()}
@@ -50,30 +60,50 @@ public class EcsStoreManager extends ExternalStoreManager {
     public void startup() throws IOException, ServiceException {
         EcsLogger.debug("Starting up ECS Store Manager");
         super.startup();
-        viprClient = S3ClientFactory.getS3Client();
-        transferManager = S3ClientFactory.getTransferManager();
+        try {
+            client = S3ClientFactory.getS3Client();
+            fillBucketNames();
+        } catch (Exception e) {
+            client = null;
+            throw ServiceException.RESOURCE_UNREACHABLE(e.getMessage(), e, (ServiceException.Argument) null);
+        }
+    }
+
+    /**
+     */
+    private void fillBucketNames() {
+        String bucketNameBase = EcsLocatorUtil.getBucketNameBase();
+        bucketNames.clear();
+        for (Bucket bucket : client.listBuckets().getBuckets()) {
+            if (bucket.getName().startsWith(bucketNameBase)) {
+                bucketNames.add(bucket.getName());
+            }
+        }
+        if (EcsLocatorUtil.useSingleBucket()) {
+            createBucketAsNeeded(EcsLocatorUtil.getBucketName(null));
+        }
     }
 
     /**
      * <p>
      * This method is invoked during Zimbra Server's shutdown process.
-     * Stops {@link com.emc.vipr.services.s3.ViPRS3Client} and
-     * {@link com.amazonaws.services.s3.transfer.TransferManager} and releases their
+     * Stops {@link com.emc.object.s3.jersey.S3JerseyClient} and releases its
      * resources.
      * </p>
      */
+    @SuppressWarnings("deprecation")
     @Override
     public void shutdown() {
         EcsLogger.debug("Shutting down ECS Store Manager");
         super.shutdown();
-        transferManager.shutdownNow();
-        viprClient.shutdown();
+        client.shutdown();
+        bucketNames.clear();
     }
 
     /**
      * <p>
      * Writes input stream to ECS store. Uses Mailbox ID
-     * and zimbra.server_name property to generate bucket name.
+     * and zimbra.store_name property to generate bucket name.
      * Random UUID is used as a key for the blob inside the bucket.
      * </p>
      *
@@ -90,25 +120,32 @@ public class EcsStoreManager extends ExternalStoreManager {
 
         EcsLocator locator = EcsLocatorUtil.generateEcsLocator(mbox);
 
-        if (!viprClient.doesBucketExist(locator.getBucketName())) {
-            viprClient.createBucket(locator.getBucketName());
+        if (!EcsLocatorUtil.useSingleBucket()) {
+            createBucketAsNeeded(locator.getBucketName());
         }
 
-        ObjectMetadata metadata = new ObjectMetadata();
+        S3ObjectMetadata metadata = new S3ObjectMetadata();
         if (actualSize > 0) {
             metadata.setContentLength(actualSize);
         }
-        Upload upload = transferManager.upload(locator.getBucketName(), locator.getKey(), in, metadata);
-        upload.addProgressListener(new EcsProgressListener());
-        try {
-            upload.waitForCompletion();
-        } catch (InterruptedException e) {
-            EcsLogger.error(String.format("Failed to wait for upload completion"), e);
-        }
+
+        PutObjectRequest request = new PutObjectRequest(locator.getBucketName(), locator.getKey(), in);
+        request.setObjectMetadata(metadata);
+        client.putObject(request);
 
         String stringLocator = EcsLocatorUtil.toStringLocator(locator);
         EcsLogger.debug(String.format("writeStreamToStore() - end: locator - %s", stringLocator));
         return stringLocator;
+    }
+
+    /**
+     * @param bucketName
+     */
+    private void createBucketAsNeeded(String bucketName) {
+        if (!bucketNames.contains(bucketName)) {
+            client.createBucket(bucketName);
+            bucketNames.add(bucketName);
+        }
     }
 
     /**
@@ -129,8 +166,7 @@ public class EcsStoreManager extends ExternalStoreManager {
         EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
 
         EcsLogger.debug(String.format("readStreamFromStore() - reading: bucket - %s, key - %s", el.getBucketName(), el.getKey()));
-        S3Object object = viprClient.getObject(el.getBucketName(), el.getKey());
-        return object.getObjectContent();
+        return client.getObject(el.getBucketName(), el.getKey()).getObject();
     }
 
     /**
@@ -151,21 +187,10 @@ public class EcsStoreManager extends ExternalStoreManager {
 
         EcsLogger.debug(String.format("deleteFromStore() - deleting: bucket - %s, key - %s", el.getBucketName(), el.getKey()));
         try {
-            viprClient.deleteObject(el.getBucketName(), el.getKey());
-        } catch (AmazonClientException e) {
+            client.deleteObject(el.getBucketName(), el.getKey());
+        } catch (Exception e) {
             EcsLogger.error(String.format("Failed to delete from - %s", locator), e);
             return false;
-        }
-
-        try {
-            viprClient.deleteBucket(el.getBucketName());
-        } catch (AmazonS3Exception e) {
-            if (e.getStatusCode() == 409 && e.getErrorCode().equals(BUCKET_NOT_EMPTY_ERROR_CODE)) {
-                // if the bucket was not empty then receiving this error is a correct behaviour
-                // suppressing this exception helps to avoid checking whether the bucket is empty
-            } else {
-                throw e;
-            }
         }
 
         return true;
@@ -184,13 +209,29 @@ public class EcsStoreManager extends ExternalStoreManager {
     @Override
     public List<String> getAllBlobPaths(Mailbox mbox) throws IOException {
         String bucketName = EcsLocatorUtil.getBucketName(mbox);
-        ObjectListing objectListing = viprClient.listObjects(new ListObjectsRequest()
-                .withBucketName(bucketName));
-
         List<String> result = new ArrayList<>();
-        for (S3ObjectSummary sum : objectListing.getObjectSummaries()) {
-            EcsLocator ecsLocator = new EcsLocator(bucketName, sum.getKey());
-            result.add(EcsLocatorUtil.toStringLocator(ecsLocator));
+        if (bucketNames.contains(bucketName)) {
+            ListObjectsRequest request = new ListObjectsRequest(bucketName);
+            String prefix = EcsLocatorUtil.getPrefix(mbox);
+            if ((prefix != null) && (prefix.length() > 0)) {
+                request.setPrefix(prefix);
+            }
+            boolean listingIncomplete = true;
+
+            while(listingIncomplete) {
+                ListObjectsResult objectListing = client.listObjects(request);
+        
+                for (S3Object object : objectListing.getObjects()) {
+                    EcsLocator ecsLocator = new EcsLocator(bucketName, object.getKey());
+                    result.add(EcsLocatorUtil.toStringLocator(ecsLocator));
+                }
+
+                if (objectListing.isTruncated()) {
+                    request.setMarker(objectListing.getNextMarker());
+                } else {
+                    listingIncomplete = false;
+                }
+            }
         }
 
         return result;
