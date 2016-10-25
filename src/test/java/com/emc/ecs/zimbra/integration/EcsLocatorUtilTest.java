@@ -9,25 +9,14 @@
  */
 package com.emc.ecs.zimbra.integration;
 
-import com.zimbra.common.service.ServiceException;
-import com.zimbra.cs.mailbox.Mailbox;
 import org.junit.Test;
 
-import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
 /**
  * Created by Askhat_Shagirov on 28.01.2015.
  */
 public class EcsLocatorUtilTest {
-
-    @Test
-    public void getBucketName_GeneratesValidBucketName() throws ServiceException {
-        Mailbox mbox = mock(Mailbox.class);
-        when(mbox.getId()).thenReturn(1);
-
-        assertEquals("zimbra.server1.1",EcsLocatorUtil.generateEcsLocator(mbox).getBucketName());
-    }
 
     @Test
     public void toStringLocator_ConvertsEcsLocatorCorrectly() {

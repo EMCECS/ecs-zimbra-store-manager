@@ -46,7 +46,7 @@ public class S3ClientFactory {
 //        }
 
         S3Config s3Config;
-        if (configuration.getS3ConfigUri() != null) {
+        if (!isNullOrEmpty(configuration.getS3ConfigUri())) {
             ConfigUri<S3Config> s3Uri = new ConfigUri<S3Config>(S3Config.class);
             s3Config = s3Uri.parseUri(configuration.getS3ConfigUri());
         } else {

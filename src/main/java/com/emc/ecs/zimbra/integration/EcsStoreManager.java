@@ -58,13 +58,14 @@ public class EcsStoreManager extends ExternalStoreManager {
      */
     @Override
     public void startup() throws IOException, ServiceException {
-        EcsLogger.debug("Starting up ECS Store Manager");
+        EcsLogger.error("Starting up ECS Store Manager");
         super.startup();
         try {
             client = S3ClientFactory.getS3Client();
             fillBucketNames();
         } catch (Exception e) {
             client = null;
+            EcsLogger.error(e.getMessage());
             throw ServiceException.RESOURCE_UNREACHABLE(e.getMessage(), e, (ServiceException.Argument) null);
         }
     }

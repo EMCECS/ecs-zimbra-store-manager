@@ -44,7 +44,7 @@ public class CachedConfigurationDecorator implements Configuration {
 
     @Override
     public String getZimbraStoreName() {
-        return (String) getValue("getZimbraServerName");
+        return (String) getValue("getZimbraStoreName");
     }
 
     @Override
