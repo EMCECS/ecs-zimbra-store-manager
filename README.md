@@ -32,7 +32,7 @@ How to configure compiled library
 How to install Zimbra StoreManager Extension plugin to Zimbra Server
 ---
 1. Create the folder /opt/zimbra/lib/ext/ecs-zimbra-store-manager
-2. Copy ecsstoremanager-VERSION.jar to /opt/zimbra/lib/ext/ecs-zimbra-store-manager
+2. Copy ecs-zimbra-store-manager-VERSION.jar to /opt/zimbra/lib/ext/ecs-zimbra-store-manager
 3. Switch to zimbra user: sudo -su zimbra
 4. Change default zimbra StoreManager: /opt/zimbra/bin/zmlocalconfig -e zimbra_class_store=com.emc.ecs.zimbra.integration.EcsStoreManager
 5. Restart Zimbra Server
