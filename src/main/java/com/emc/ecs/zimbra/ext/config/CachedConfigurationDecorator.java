@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2016 EMC Corporation. All Rights Reserved.
+ *
+ * Licensed under the EMC Software License Agreement for Free Software (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ * https://github.com/EMCECS/ecs-zimbra-store-manager/blob/master/LICENSE.txt
+ */
 package com.emc.ecs.zimbra.ext.config;
 
 import java.lang.reflect.InvocationTargetException;
@@ -34,23 +43,13 @@ public class CachedConfigurationDecorator implements Configuration {
     }
 
     @Override
-    public String getZimbraServerName() {
+    public String getZimbraStoreName() {
         return (String) getValue("getZimbraServerName");
     }
 
     @Override
     public Boolean useSmartClient() {
         return (Boolean) getValue("useSmartClient");
-    }
-
-    @Override
-    public Long getMinimumUploadPartSize() {
-        return (Long) getValue("getMinimumUploadPartSize");
-    }
-
-    @Override
-    public Long getMultipartUploadThreshold() {
-        return (Long) getValue("getMultipartUploadThreshold");
     }
 
     @Override
@@ -61,6 +60,16 @@ public class CachedConfigurationDecorator implements Configuration {
     @Override
     public String getClientProtocol() {
         return (String) getValue("getClientProtocol");
+    }
+
+    @Override
+    public MailboxLocatorScheme getMailboxLocatorScheme() {
+        return (MailboxLocatorScheme) getValue("getMailboxLocatorScheme");
+    }
+
+    @Override
+    public String getS3ConfigUri() {
+        return (String) getValue("getS3ConfigUri");
     }
 
     private Object getValue(String method) {
