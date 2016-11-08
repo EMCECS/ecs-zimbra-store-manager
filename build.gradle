@@ -9,7 +9,7 @@
  */
 description = "Zimbra Storage Manager plugin that writes to EMC Elastic Cloud Storage"
 group = 'com.emc.ecs'
-version = '1.0-rc1'
+version = '1.0.0'
 
 ext.githubProjectName = 'ecs-zimbra-store-manager'
 ext.licenseName = 'EMC Software License Agreement - Free Software'
