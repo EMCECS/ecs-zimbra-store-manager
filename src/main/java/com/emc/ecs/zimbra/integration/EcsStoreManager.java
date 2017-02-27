@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2016-2017 EMC Corporation. All Rights Reserved.
  *
  * Licensed under the EMC Software License Agreement for Free Software (the "License").
  * You may not use this file except in compliance with the License.
@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -44,6 +47,10 @@ import java.util.Set;
 public class EcsStoreManager extends ExternalStoreManager {
 
     private S3JerseyClient client;
+
+    private Future<?>[] futures;
+
+    private ExecutorService executorService;
 
     private final Set<String> bucketNames = new HashSet<String>();
 
@@ -63,6 +70,10 @@ public class EcsStoreManager extends ExternalStoreManager {
         try {
             client = S3ClientFactory.getS3Client();
             fillBucketNames();
+            int numberOfThreadsToUse = S3ClientFactory.getConfiguration().getNumberOfDeleteThreads();
+            futures = new Future<?>[numberOfThreadsToUse];
+            executorService = Executors.newFixedThreadPool(numberOfThreadsToUse);
+
         } catch (Exception e) {
             client = null;
             EcsLogger.error(e.getMessage());
@@ -97,8 +108,12 @@ public class EcsStoreManager extends ExternalStoreManager {
     public void shutdown() {
         EcsLogger.debug("Shutting down ECS Store Manager");
         super.shutdown();
+        executorService.shutdown();
         client.shutdown();
         bucketNames.clear();
+        futures = null;
+        executorService = null;
+        client = null;
     }
 
     /**
@@ -184,15 +199,38 @@ public class EcsStoreManager extends ExternalStoreManager {
     public boolean deleteFromStore(String locator, Mailbox mbox) throws IOException {
         EcsLogger.debug(String.format("deleteFromStore() - start: locator - %s, accountId - %s", locator, mbox.getId()));
 
-        EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
+        final EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
 
         EcsLogger.debug(String.format("deleteFromStore() - deleting: bucket - %s, key - %s", el.getBucketName(), el.getKey()));
-        try {
-            client.deleteObject(el.getBucketName(), el.getKey());
-        } catch (Exception e) {
-            EcsLogger.error(String.format("Failed to delete from - %s", locator), e);
-            return false;
-        }
+
+        boolean waiting = true;
+        do {
+            for (int i = 0; waiting && (i < futures.length); ++i) {
+                if ((futures[i] == null) || futures[i].isDone()) {
+                    futures[i] = executorService.submit(new Thread() {
+    
+                        @Override
+                        public void run() {
+                            try {
+                                client.deleteObject(el.getBucketName(), el.getKey());
+                            } catch (Exception e) {
+                                EcsLogger.error(String.format("Failed to delete from - %s", locator), e);
+                            }
+                        }
+    
+                    });
+                    waiting = false;
+                }
+            }
+            if (waiting) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    EcsLogger.error(String.format("Failed to delete from - %s", locator), e);
+                    throw new IOException(e);
+                }
+            }
+        } while (waiting);
 
         return true;
     }

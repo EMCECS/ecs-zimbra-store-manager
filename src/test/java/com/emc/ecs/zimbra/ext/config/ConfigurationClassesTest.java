@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 EMC Corporation. All Rights Reserved.
+ * Copyright 2016-2017 EMC Corporation. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ public class ConfigurationClassesTest extends Assert {
         assertEquals(MailboxLocatorScheme.Prefix, configuration.getMailboxLocatorScheme());
         assertEquals(Boolean.FALSE, configuration.useSmartClient());
         assertEquals(Boolean.TRUE, configuration.getCertificateValidationEnabled());
+        assertEquals(25, configuration.getNumberOfDeleteThreads());
     }
 
 }

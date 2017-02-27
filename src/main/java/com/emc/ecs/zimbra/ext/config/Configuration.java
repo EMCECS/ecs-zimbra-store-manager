@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2016-2017 EMC Corporation. All Rights Reserved.
  *
  * Licensed under the EMC Software License Agreement for Free Software (the "License").
  * You may not use this file except in compliance with the License.
@@ -33,5 +33,7 @@ public interface Configuration {
     MailboxLocatorScheme getMailboxLocatorScheme();
 
     String getS3ConfigUri();
+
+    int getNumberOfDeleteThreads();
 
 }
