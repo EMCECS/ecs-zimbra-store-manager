@@ -9,6 +9,7 @@
  */
 package com.emc.ecs.zimbra.integration;
 
+import com.emc.ecs.util.EnhancedThreadPoolExecutor;
 import com.emc.ecs.zimbra.integration.util.EcsLogger;
 import com.emc.object.s3.S3ObjectMetadata;
 import com.emc.object.s3.bean.Bucket;
@@ -27,9 +28,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -48,9 +46,7 @@ public class EcsStoreManager extends ExternalStoreManager {
 
     private S3JerseyClient client;
 
-    private Future<?>[] futures;
-
-    private ExecutorService executorService;
+    private EnhancedThreadPoolExecutor executor;
 
     private final Set<String> bucketNames = new HashSet<String>();
 
@@ -71,9 +67,7 @@ public class EcsStoreManager extends ExternalStoreManager {
             client = S3ClientFactory.getS3Client();
             fillBucketNames();
             int numberOfThreadsToUse = S3ClientFactory.getConfiguration().getNumberOfDeleteThreads();
-            futures = new Future<?>[numberOfThreadsToUse];
-            executorService = Executors.newFixedThreadPool(numberOfThreadsToUse);
-
+            executor = new EnhancedThreadPoolExecutor(numberOfThreadsToUse);
         } catch (Exception e) {
             client = null;
             String message = "The ECS Zimbra Store Manager failed to start, probably due to a configuration error. Configuration instructions are available at https://github.com/EMCECS/ecs-zimbra-store-manager/wiki. " + e.getMessage();
@@ -109,11 +103,10 @@ public class EcsStoreManager extends ExternalStoreManager {
     public void shutdown() {
         EcsLogger.debug("Shutting down ECS Store Manager");
         super.shutdown();
-        executorService.shutdown();
+        executor.shutdown();
         client.shutdown();
         bucketNames.clear();
-        futures = null;
-        executorService = null;
+        executor = null;
         client = null;
     }
 
@@ -204,34 +197,22 @@ public class EcsStoreManager extends ExternalStoreManager {
 
         EcsLogger.debug(String.format("deleteFromStore() - deleting: bucket - %s, key - %s", el.getBucketName(), el.getKey()));
 
-        boolean waiting = true;
-        do {
-            for (int i = 0; waiting && (i < futures.length); ++i) {
-                if ((futures[i] == null) || futures[i].isDone()) {
-                    futures[i] = executorService.submit(new Thread() {
-    
-                        @Override
-                        public void run() {
-                            try {
-                                client.deleteObject(el.getBucketName(), el.getKey());
-                            } catch (Exception e) {
-                                EcsLogger.error(String.format("Failed to delete from - %s", locator), e);
-                            }
-                        }
-    
-                    });
-                    waiting = false;
+        try {
+            executor.blockingSubmit(new Thread() {
+
+                public void run() {
+                    try {
+                        client.deleteObject(el.getBucketName(), el.getKey());
+                    } catch (Exception e) {
+                        EcsLogger.error(String.format("Failed to delete from - %s", locator), e);
+                    }
                 }
-            }
-            if (waiting) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    EcsLogger.error(String.format("Failed to delete from - %s", locator), e);
-                    throw new IOException(e);
-                }
-            }
-        } while (waiting);
+
+            });
+        } catch (Exception e) {
+            EcsLogger.error(String.format("Failed to delete from - %s", locator), e);
+            throw new IOException(e);
+        }
 
         return true;
     }
