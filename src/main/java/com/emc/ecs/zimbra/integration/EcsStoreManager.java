@@ -190,7 +190,7 @@ public class EcsStoreManager extends ExternalStoreManager {
      * @throws IOException
      */
     @Override
-    public boolean deleteFromStore(String locator, Mailbox mbox) throws IOException {
+    public boolean deleteFromStore(final String locator, Mailbox mbox) throws IOException {
         EcsLogger.debug(String.format("deleteFromStore() - start: locator - %s, accountId - %s", locator, mbox.getId()));
 
         final EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);

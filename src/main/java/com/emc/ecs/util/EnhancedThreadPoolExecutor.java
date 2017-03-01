@@ -33,7 +33,7 @@ public class EnhancedThreadPoolExecutor extends ThreadPoolExecutor {
     private AtomicInteger activeTasks = new AtomicInteger();
 
     public EnhancedThreadPoolExecutor(int poolSize) {
-        this(poolSize, new LinkedBlockingDeque<>(10 * poolSize));
+        this(poolSize, new LinkedBlockingDeque<Runnable>(10 * poolSize));
     }
 
     public EnhancedThreadPoolExecutor(int poolSize, BlockingDeque<Runnable> workDeque) {
