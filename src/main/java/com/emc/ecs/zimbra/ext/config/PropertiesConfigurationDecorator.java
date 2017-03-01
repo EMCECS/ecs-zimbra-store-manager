@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2016-2017 EMC Corporation. All Rights Reserved.
  *
  * Licensed under the EMC Software License Agreement for Free Software (the "License").
  * You may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
+import com.emc.ecs.zimbra.integration.util.EcsLogger;
 
 /**
  * <p>
@@ -33,6 +35,8 @@ public class PropertiesConfigurationDecorator implements Configuration {
 
     private static final String ZIMBRA_STORE_NAME = "zimbra.store_name";
     private static final String MAILBOX_LOCATOR_SCHEME = "zimbra.mailbox_locator_scheme";
+    private static final String NUMBER_OF_DELETE_THREADS = "zimbra.number_of_delete_threads";
+    private static final int DEFAULT_NUMBER_OF_DELETE_THREADS = 25;
 
     @Override
     public String getAccessKey() {
@@ -82,6 +86,20 @@ public class PropertiesConfigurationDecorator implements Configuration {
     @Override
     public String getS3ConfigUri() {
         return getString(ECS_S3_CONFIG_URI);
+    }
+
+    /* (non-Javadoc)
+     * @see com.emc.ecs.zimbra.ext.config.Configuration#getNumberOfDeleteThreads()
+     */
+    @Override
+    public int getNumberOfDeleteThreads() {
+        try {
+            String stringNumber = getString(NUMBER_OF_DELETE_THREADS);
+            return ((stringNumber == null) || stringNumber.trim().isEmpty()) ? DEFAULT_NUMBER_OF_DELETE_THREADS : Integer.parseInt(stringNumber);
+        } catch (Exception e) {
+            EcsLogger.warn("The property " + NUMBER_OF_DELETE_THREADS + " should be a valid integer.");
+            return DEFAULT_NUMBER_OF_DELETE_THREADS;
+        }
     }
 
     private String getNonEmptyString(String key) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2016-2017 EMC Corporation. All Rights Reserved.
  *
  * Licensed under the EMC Software License Agreement for Free Software (the "License").
  * You may not use this file except in compliance with the License.
@@ -9,6 +9,7 @@
  */
 package com.emc.ecs.zimbra.integration;
 
+import com.emc.ecs.util.EnhancedThreadPoolExecutor;
 import com.emc.ecs.zimbra.integration.util.EcsLogger;
 import com.emc.object.s3.S3ObjectMetadata;
 import com.emc.object.s3.bean.Bucket;
@@ -45,6 +46,8 @@ public class EcsStoreManager extends ExternalStoreManager {
 
     private S3JerseyClient client;
 
+    private EnhancedThreadPoolExecutor executor;
+
     private final Set<String> bucketNames = new HashSet<String>();
 
     /**
@@ -63,10 +66,13 @@ public class EcsStoreManager extends ExternalStoreManager {
         try {
             client = S3ClientFactory.getS3Client();
             fillBucketNames();
+            int numberOfThreadsToUse = S3ClientFactory.getConfiguration().getNumberOfDeleteThreads();
+            executor = new EnhancedThreadPoolExecutor(numberOfThreadsToUse);
         } catch (Exception e) {
             client = null;
-            EcsLogger.error(e.getMessage());
-            throw ServiceException.RESOURCE_UNREACHABLE(e.getMessage(), e, (ServiceException.Argument) null);
+            String message = "The ECS Zimbra Store Manager failed to start, probably due to a configuration error. Configuration instructions are available at https://github.com/EMCECS/ecs-zimbra-store-manager/wiki. " + e.getMessage();
+            EcsLogger.fatal(message);
+            throw ServiceException.RESOURCE_UNREACHABLE(message, e, (ServiceException.Argument) null);
         }
     }
 
@@ -97,8 +103,11 @@ public class EcsStoreManager extends ExternalStoreManager {
     public void shutdown() {
         EcsLogger.debug("Shutting down ECS Store Manager");
         super.shutdown();
+        executor.shutdown();
         client.shutdown();
         bucketNames.clear();
+        executor = null;
+        client = null;
     }
 
     /**
@@ -181,17 +190,28 @@ public class EcsStoreManager extends ExternalStoreManager {
      * @throws IOException
      */
     @Override
-    public boolean deleteFromStore(String locator, Mailbox mbox) throws IOException {
+    public boolean deleteFromStore(final String locator, Mailbox mbox) throws IOException {
         EcsLogger.debug(String.format("deleteFromStore() - start: locator - %s, accountId - %s", locator, mbox.getId()));
 
-        EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
+        final EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
 
         EcsLogger.debug(String.format("deleteFromStore() - deleting: bucket - %s, key - %s", el.getBucketName(), el.getKey()));
+
         try {
-            client.deleteObject(el.getBucketName(), el.getKey());
+            executor.blockingSubmit(new Thread() {
+
+                public void run() {
+                    try {
+                        client.deleteObject(el.getBucketName(), el.getKey());
+                    } catch (Exception e) {
+                        EcsLogger.error(String.format("Failed to delete from - %s", locator), e);
+                    }
+                }
+
+            });
         } catch (Exception e) {
             EcsLogger.error(String.format("Failed to delete from - %s", locator), e);
-            return false;
+            throw new IOException(e);
         }
 
         return true;
