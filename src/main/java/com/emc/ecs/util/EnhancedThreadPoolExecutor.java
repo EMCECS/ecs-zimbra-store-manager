@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017 EMC Corporation. All Rights Reserved.
  *
  * Licensed under the EMC Software License Agreement for Free Software (the "License").
