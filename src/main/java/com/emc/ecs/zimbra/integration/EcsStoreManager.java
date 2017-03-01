@@ -76,8 +76,9 @@ public class EcsStoreManager extends ExternalStoreManager {
 
         } catch (Exception e) {
             client = null;
-            EcsLogger.error(e.getMessage());
-            throw ServiceException.RESOURCE_UNREACHABLE(e.getMessage(), e, (ServiceException.Argument) null);
+            String message = "The ECS Zimbra Store Manager failed to start, probably due to a configuration error. Configuration instructions are available at https://github.com/EMCECS/ecs-zimbra-store-manager/wiki. " + e.getMessage();
+            EcsLogger.fatal(message);
+            throw ServiceException.RESOURCE_UNREACHABLE(message, e, (ServiceException.Argument) null);
         }
     }
 
