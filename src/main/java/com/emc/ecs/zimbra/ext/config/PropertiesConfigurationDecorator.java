@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import com.emc.ecs.zimbra.integration.util.EcsLogger;
+
 /**
  * <p>
  * Configuration that reads properties from <i>ecs.properties</i>
@@ -86,6 +88,20 @@ public class PropertiesConfigurationDecorator implements Configuration {
         return getString(ECS_S3_CONFIG_URI);
     }
 
+    /* (non-Javadoc)
+     * @see com.emc.ecs.zimbra.ext.config.Configuration#getNumberOfDeleteThreads()
+     */
+    @Override
+    public int getNumberOfDeleteThreads() {
+        try {
+            String stringNumber = getString(NUMBER_OF_DELETE_THREADS);
+            return ((stringNumber == null) || stringNumber.trim().isEmpty()) ? DEFAULT_NUMBER_OF_DELETE_THREADS : Integer.parseInt(stringNumber);
+        } catch (Exception e) {
+            EcsLogger.warn("The property " + NUMBER_OF_DELETE_THREADS + " should be a valid integer.");
+            return DEFAULT_NUMBER_OF_DELETE_THREADS;
+        }
+    }
+
     private String getNonEmptyString(String key) {
         String value = getString(key);
         if (value == null || value.isEmpty()) {
@@ -112,18 +128,6 @@ public class PropertiesConfigurationDecorator implements Configuration {
         }
 
         return props;
-    }
-
-    /* (non-Javadoc)
-     * @see com.emc.ecs.zimbra.ext.config.Configuration#getNumberOfDeleteThreads()
-     */
-    @Override
-    public int getNumberOfDeleteThreads() {
-        try {
-            return Integer.parseInt(getString(NUMBER_OF_DELETE_THREADS));
-        } catch (Exception e) {
-            return DEFAULT_NUMBER_OF_DELETE_THREADS;
-        }
     }
 
 }
