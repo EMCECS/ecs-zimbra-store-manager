@@ -51,17 +51,13 @@ public class EcsLocatorUtil {
             throw new IllegalArgumentException("Invalid locator String");
     }
 
-    public static String getBucketNameBase() {
-        return String.format("%s.%s", ZIMBRA, getConfiguration().getZimbraStoreName());
-    }
-
     public static String getBucketName(Mailbox mbox) {
         switch (getConfiguration().getMailboxLocatorScheme()) {
         case Bucket:
-            return String.format("%s.%s", getBucketNameBase(), mbox.getId());
+            return String.format("%s.%s", ZIMBRA, mbox.getAccountId());
         case Prefix:
         default:
-            return getBucketNameBase();
+            return ZIMBRA;
         }
     }
 
@@ -84,7 +80,7 @@ public class EcsLocatorUtil {
             return "";
         case Prefix:
         default:
-            return String.format("%s.", mbox.getId());
+            return String.format("%s.", mbox.getAccountId());
         }
     }
 
