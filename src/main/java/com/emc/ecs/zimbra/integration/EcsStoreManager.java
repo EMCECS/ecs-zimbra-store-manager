@@ -181,6 +181,33 @@ public class EcsStoreManager extends ExternalStoreManager {
 
     /**
      * <p>
+     * Verify an object exists in the store.
+     * </p>
+     *
+     * @param locator identifier string for the blob as returned from write operation
+     * @param mbox    Mailbox which contains the blob
+     * @return boolean indicating whether the object exists
+     * @throws IOException
+     */
+    public boolean validateFromStore(String locator, Mailbox mbox) throws IOException {
+        EcsLogger.debug(String.format("validateFromStore() - start: locator - %s, accountId - %s", locator, mbox.getAccountId()));
+
+        EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
+
+        S3ObjectMetadata metadata = null;
+
+        try {
+            metadata = client.getObjectMetadata(el.getBucketName(), el.getKey());
+        } catch (Exception e) {
+            EcsLogger.error(String.format("Failed to retrieve metadata from - %s", el.getKey()));
+            throw new IOException(e);
+        }
+
+        return (metadata == null) ? false : true;
+    }
+
+    /**
+     * <p>
      * Delete a blob from the store
      * </p>
      *
