@@ -126,7 +126,7 @@ public class EcsStoreManager extends ExternalStoreManager {
      */
     @Override
     public String writeStreamToStore(InputStream in, long actualSize, Mailbox mbox) throws IOException {
-        EcsLogger.debug(String.format("writeStreamToStore() - start: actualSize - %s, accountId - %s", actualSize, mbox.getId()));
+        EcsLogger.debug(String.format("writeStreamToStore() - start: actualSize - %s, accountId - %s", actualSize, mbox.getAccountId()));
 
         EcsLocator locator = EcsLocatorUtil.generateEcsLocator(mbox);
 
@@ -171,12 +171,39 @@ public class EcsStoreManager extends ExternalStoreManager {
      */
     @Override
     public InputStream readStreamFromStore(String locator, Mailbox mbox) throws IOException {
-        EcsLogger.debug(String.format("readStreamFromStore() - start: locator - %s, accountId - %s", locator, mbox.getId()));
+        EcsLogger.debug(String.format("readStreamFromStore() - start: locator - %s, accountId - %s", locator, mbox.getAccountId()));
 
         EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
 
         EcsLogger.debug(String.format("readStreamFromStore() - reading: bucket - %s, key - %s", el.getBucketName(), el.getKey()));
         return client.getObject(el.getBucketName(), el.getKey()).getObject();
+    }
+
+    /**
+     * <p>
+     * Verify an object exists in the store.
+     * </p>
+     *
+     * @param locator identifier string for the blob as returned from write operation
+     * @param mbox    Mailbox which contains the blob
+     * @return boolean indicating whether the object exists
+     * @throws IOException
+     */
+    public boolean validateFromStore(String locator, Mailbox mbox) throws IOException {
+        EcsLogger.debug(String.format("validateFromStore() - start: locator - %s, accountId - %s", locator, mbox.getAccountId()));
+
+        EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
+
+        S3ObjectMetadata metadata = null;
+
+        try {
+            metadata = client.getObjectMetadata(el.getBucketName(), el.getKey());
+        } catch (Exception e) {
+            EcsLogger.error(String.format("Failed to retrieve metadata from - %s", el.getKey()));
+            throw new IOException(e);
+        }
+
+        return (metadata == null) ? false : true;
     }
 
     /**
@@ -191,7 +218,7 @@ public class EcsStoreManager extends ExternalStoreManager {
      */
     @Override
     public boolean deleteFromStore(final String locator, Mailbox mbox) throws IOException {
-        EcsLogger.debug(String.format("deleteFromStore() - start: locator - %s, accountId - %s", locator, mbox.getId()));
+        EcsLogger.debug(String.format("deleteFromStore() - start: locator - %s, accountId - %s", locator, mbox.getAccountId()));
 
         final EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
 
