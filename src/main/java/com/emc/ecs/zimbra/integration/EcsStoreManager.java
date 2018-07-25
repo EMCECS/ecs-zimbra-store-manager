@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2016-2018 EMC Corporation. All Rights Reserved.
  *
  * Licensed under the EMC Software License Agreement for Free Software (the "License").
  * You may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@ package com.emc.ecs.zimbra.integration;
 
 import com.emc.ecs.util.EnhancedThreadPoolExecutor;
 import com.emc.ecs.zimbra.integration.util.EcsLogger;
+import com.emc.object.s3.S3Exception;
 import com.emc.object.s3.S3ObjectMetadata;
 import com.emc.object.s3.bean.Bucket;
 import com.emc.object.s3.bean.ListObjectsResult;
@@ -187,23 +188,23 @@ public class EcsStoreManager extends ExternalStoreManager {
      * @param locator identifier string for the blob as returned from write operation
      * @param mbox    Mailbox which contains the blob
      * @return boolean indicating whether the object exists
-     * @throws IOException
+     * @throws Exception
      */
-    public boolean validateFromStore(String locator, Mailbox mbox) throws IOException {
-        EcsLogger.debug(String.format("validateFromStore() - start: locator - %s, accountId - %s", locator, mbox.getAccountId()));
+    public boolean validate(String locator, Mailbox mbox) throws Exception {
+        EcsLogger.debug(String.format("validate() - start: locator - %s, accountId - %s", locator, mbox.getId()));
 
-        EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
-
-        S3ObjectMetadata metadata = null;
+        EcsLocator ecsLocator = EcsLocatorUtil.fromStringLocator(locator);
+        boolean isValid = false;
 
         try {
-            metadata = client.getObjectMetadata(el.getBucketName(), el.getKey());
-        } catch (Exception e) {
-            EcsLogger.error(String.format("Failed to retrieve metadata from - %s", el.getKey()));
-            throw new IOException(e);
+            isValid = (null != client.getObjectMetadata(ecsLocator.getBucketName(), ecsLocator.getKey()));
+        } catch (S3Exception e) {
+            if (e.getHttpCode() != 404) { // object not found is expected from bad inputs, so no exception should be thrown
+                throw e;
+            }
         }
 
-        return (metadata == null) ? false : true;
+        return isValid;
     }
 
     /**
