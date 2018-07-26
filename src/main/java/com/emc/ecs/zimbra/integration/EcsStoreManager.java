@@ -127,7 +127,7 @@ public class EcsStoreManager extends ExternalStoreManager {
      */
     @Override
     public String writeStreamToStore(InputStream in, long actualSize, Mailbox mbox) throws IOException {
-        EcsLogger.debug(String.format("writeStreamToStore() - start: actualSize - %s, accountId - %s", actualSize, mbox.getId()));
+        EcsLogger.debug(String.format("writeStreamToStore() - start: actualSize - %s, accountId - %s", actualSize, mbox.getAccountId()));
 
         EcsLocator locator = EcsLocatorUtil.generateEcsLocator(mbox);
 
@@ -172,7 +172,7 @@ public class EcsStoreManager extends ExternalStoreManager {
      */
     @Override
     public InputStream readStreamFromStore(String locator, Mailbox mbox) throws IOException {
-        EcsLogger.debug(String.format("readStreamFromStore() - start: locator - %s, accountId - %s", locator, mbox.getId()));
+        EcsLogger.debug(String.format("readStreamFromStore() - start: locator - %s, accountId - %s", locator, mbox.getAccountId()));
 
         EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
 
@@ -219,7 +219,7 @@ public class EcsStoreManager extends ExternalStoreManager {
      */
     @Override
     public boolean deleteFromStore(final String locator, Mailbox mbox) throws IOException {
-        EcsLogger.debug(String.format("deleteFromStore() - start: locator - %s, accountId - %s", locator, mbox.getId()));
+        EcsLogger.debug(String.format("deleteFromStore() - start: locator - %s, accountId - %s", locator, mbox.getAccountId()));
 
         final EcsLocator el = EcsLocatorUtil.fromStringLocator(locator);
 
