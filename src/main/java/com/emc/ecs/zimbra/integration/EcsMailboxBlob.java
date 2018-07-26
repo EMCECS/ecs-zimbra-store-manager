@@ -1,6 +1,13 @@
+/*
+ * Copyright (c) 2018 EMC Corporation. All Rights Reserved.
+ *
+ * Licensed under the EMC Software License Agreement for Free Software (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ * https://github.com/EMCECS/ecs-zimbra-store-manager/blob/master/LICENSE.txt
+ */
 package com.emc.ecs.zimbra.integration;
-
-import java.io.IOException;
 
 import com.zimbra.cs.mailbox.Mailbox;
 import com.zimbra.cs.store.StoreManager;
@@ -10,7 +17,7 @@ import com.emc.ecs.zimbra.integration.util.EcsLogger;
 
 /**
  * <p>
- * ExternalMailboxBlob implementation that supports validation
+ * ExternalMailboxBlob implementation that optimizes validation
  * </p>
  */
 
@@ -22,13 +29,12 @@ public class EcsMailboxBlob extends ExternalMailboxBlob {
 
     @Override
     public boolean validateBlob() {
-        EcsStoreManager sm = (EcsStoreManager) StoreManager.getInstance();
         boolean status = false;
 
         try {
-            status = sm.validateFromStore(getLocator(), getMailbox());
-        } catch (IOException e) {
-            EcsLogger.warn(String.format("Failed to validate - %s", getLocator()));
+            status = ((EcsStoreManager) StoreManager.getInstance()).validate(getLocator(), getMailbox());
+        } catch (Exception e) {
+            EcsLogger.warn(String.format("Failed to validate - %s", getLocator()), e);
         }
 
         return status;
