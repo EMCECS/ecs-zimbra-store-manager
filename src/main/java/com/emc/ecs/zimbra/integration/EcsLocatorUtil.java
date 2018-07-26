@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 EMC Corporation. All Rights Reserved.
+ * Copyright (c) 2016-2018 EMC Corporation. All Rights Reserved.
  *
  * Licensed under the EMC Software License Agreement for Free Software (the "License").
  * You may not use this file except in compliance with the License.
@@ -51,13 +51,17 @@ public class EcsLocatorUtil {
             throw new IllegalArgumentException("Invalid locator String");
     }
 
+    public static String getBucketNameBase() {
+        return String.format("%s.%s", ZIMBRA, getConfiguration().getZimbraStoreName());
+    }
+
     public static String getBucketName(Mailbox mbox) {
         switch (getConfiguration().getMailboxLocatorScheme()) {
         case Bucket:
-            return String.format("%s.%s", ZIMBRA, mbox.getAccountId());
+            return String.format("%s.%s", getBucketNameBase(), mbox.getAccountId());
         case Prefix:
         default:
-            return ZIMBRA;
+            return getBucketNameBase();
         }
     }
 

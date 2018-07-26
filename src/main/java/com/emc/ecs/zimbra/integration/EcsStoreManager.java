@@ -191,7 +191,7 @@ public class EcsStoreManager extends ExternalStoreManager {
      * @throws Exception
      */
     public boolean validate(String locator, Mailbox mbox) throws Exception {
-        EcsLogger.debug(String.format("validate() - start: locator - %s, accountId - %s", locator, mbox.getId()));
+        EcsLogger.debug(String.format("validate() - start: locator - %s, accountId - %s", locator, mbox.getAccountId()));
 
         EcsLocator ecsLocator = EcsLocatorUtil.fromStringLocator(locator);
         boolean isValid = false;
